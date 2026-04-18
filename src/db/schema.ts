@@ -9,20 +9,30 @@ export const workouts = pgTable("workouts", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Catalog of available exercises, selectable by users
 export const exercises = pgTable("exercises", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  muscleGroup: text("muscle_group"),
+});
+
+// Junction table: an exercise entry within a specific workout
+export const workoutExercises = pgTable("workout_exercises", {
   id: serial("id").primaryKey(),
   workoutId: integer("workout_id")
     .notNull()
     .references(() => workouts.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "restrict" }),
   order: integer("order").notNull(),
 });
 
 export const sets = pgTable("sets", {
   id: serial("id").primaryKey(),
-  exerciseId: integer("exercise_id")
+  workoutExerciseId: integer("workout_exercise_id")
     .notNull()
-    .references(() => exercises.id, { onDelete: "cascade" }),
+    .references(() => workoutExercises.id, { onDelete: "cascade" }),
   setNumber: integer("set_number").notNull(),
   reps: integer("reps"),
   weightKg: numeric("weight_kg", { precision: 6, scale: 2 }),
